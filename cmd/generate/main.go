@@ -26,7 +26,7 @@ func main() {
 	}
 
 	hireAllConfig := internal.GenerateFilesConfig{}
-	hireAllConfig.JobType = internal.CaterHireJobType
+	hireAllConfig.JobType = internal.HireAlljobType
 	hireAllConfig.StoreHash = os.Getenv("HA_STORE_HASH")
 	hireAllConfig.AuthToken = os.Getenv("HA_XAUTHTOKEN")
 	if hireAllConfig.StoreHash == "" || hireAllConfig.AuthToken == "" {
