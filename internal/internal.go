@@ -299,17 +299,14 @@ func orderToXML(client *bigcommerce.Client, jobType JobType, order bigcommerce.O
 	return b, nil
 }
 
-func GenerateFiles() error {
+type GenerateFilesConfig struct {
+	JobType   JobType
+	StoreHash string
+	AuthToken string
+}
 
-	storeHash := os.Getenv("CH_STORE_HASH")
-	authToken := os.Getenv("CH_XAUTHTOKEN")
-	if storeHash == "" || authToken == "" {
-		return fmt.Errorf("[ERROR] missing environment variables CH_STORE_HASH or CH_XAUTHTOKEN")
-	}
-
-	jobType := CaterHireJobType
-	client := bigcommerce.NewClient(storeHash, authToken, nil, nil)
-
+func GenerateFiles(config GenerateFilesConfig) error {
+	client := bigcommerce.NewClient(config.StoreHash, config.AuthToken, nil, nil)
 	statuses, err := client.V2.GetOrderStatuses()
 	if err != nil {
 		return fmt.Errorf("[ERROR] getting order statuses: %v", err)
@@ -342,7 +339,7 @@ func GenerateFiles() error {
 	}
 
 	for _, order := range orders {
-		xml, err := orderToXML(client, jobType, order)
+		xml, err := orderToXML(client, config.JobType, order)
 		if err != nil {
 			log.Printf("[ERROR]  %v\n", err)
 			continue
