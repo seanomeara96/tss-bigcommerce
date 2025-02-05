@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"encoding/xml"
@@ -11,7 +11,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/joho/godotenv"
 	"github.com/seanomeara96/go-bigcommerce"
 )
 
@@ -300,15 +299,12 @@ func orderToXML(client *bigcommerce.Client, jobType JobType, order bigcommerce.O
 	return b, nil
 }
 
-func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("[ERROR] loading .env file: %v", err)
-	}
+func GenerateFiles() error {
 
 	storeHash := os.Getenv("CH_STORE_HASH")
 	authToken := os.Getenv("CH_XAUTHTOKEN")
 	if storeHash == "" || authToken == "" {
-		log.Fatalf("[ERROR] missing environment variables CH_STORE_HASH or CH_XAUTHTOKEN")
+		return fmt.Errorf("[ERROR] missing environment variables CH_STORE_HASH or CH_XAUTHTOKEN")
 	}
 
 	jobType := CaterHireJobType
@@ -316,7 +312,7 @@ func main() {
 
 	statuses, err := client.V2.GetOrderStatuses()
 	if err != nil {
-		log.Fatalf("[ERROR] getting order statuses: %v", err)
+		return fmt.Errorf("[ERROR] getting order statuses: %v", err)
 	}
 
 	statusID := 11
@@ -342,7 +338,7 @@ func main() {
 
 	orders, _, err := client.V2.GetOrders(orderQueryParams)
 	if err != nil {
-		log.Fatalf("[ERROR] getting orders: %v", err)
+		return fmt.Errorf("[ERROR] getting orders: %v", err)
 	}
 
 	for _, order := range orders {
@@ -355,9 +351,9 @@ func main() {
 		fileName := "order" + strconv.Itoa(order.ID) + ".xml"
 		err = xmlToFile(fileName, xml)
 		if err != nil {
-			log.Fatalf("[ERROR] %v", err)
+			return fmt.Errorf("[ERROR] %v", err)
 		}
 
 	}
-
+	return nil
 }
