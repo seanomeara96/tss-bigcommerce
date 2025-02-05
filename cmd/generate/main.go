@@ -22,7 +22,7 @@ func main() {
 	}
 
 	if err := internal.GenerateFiles(caterHireConfig); err != nil {
-		log.Fatal("failed to run GenerateFiles")
+		log.Fatal("failed to run GenerateFiles for caterhire")
 	}
 
 	hireAllConfig := internal.GenerateFilesConfig{}
@@ -34,7 +34,7 @@ func main() {
 	}
 
 	if err := internal.GenerateFiles(hireAllConfig); err != nil {
-		log.Fatal("failed to run GenerateFiles")
+		log.Fatal("failed to run GenerateFiles for hireall")
 	}
 
 }
