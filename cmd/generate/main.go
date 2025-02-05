@@ -13,6 +13,8 @@ func main() {
 		log.Fatalf("[ERROR] loading .env file: %v", err)
 	}
 
+	//TODO retrieve last recorded order id from both stores and add to the config
+
 	caterHireConfig := internal.GenerateFilesConfig{}
 	caterHireConfig.JobType = internal.CaterHireJobType
 	caterHireConfig.StoreHash = os.Getenv("CH_STORE_HASH")
