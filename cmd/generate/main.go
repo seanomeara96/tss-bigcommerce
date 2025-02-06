@@ -13,9 +13,17 @@ func main() {
 		log.Fatalf("[ERROR] loading .env file: %v", err)
 	}
 
+	db, err := internal.Database(nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
 	//TODO retrieve last recorded order id from both stores and add to the config
 
 	caterHireConfig := internal.GenerateFilesConfig{}
+	caterHireConfig.DB = db
+	caterHireConfig.MinOrderID = 99999
 	caterHireConfig.JobType = internal.CaterHireJobType
 	caterHireConfig.StoreHash = os.Getenv("CH_STORE_HASH")
 	caterHireConfig.AuthToken = os.Getenv("CH_XAUTHTOKEN")
@@ -28,6 +36,8 @@ func main() {
 	}
 
 	hireAllConfig := internal.GenerateFilesConfig{}
+	hireAllConfig.DB = db
+	hireAllConfig.MinOrderID = 99999
 	hireAllConfig.JobType = internal.HireAlljobType
 	hireAllConfig.StoreHash = os.Getenv("HA_STORE_HASH")
 	hireAllConfig.AuthToken = os.Getenv("HA_XAUTHTOKEN")
