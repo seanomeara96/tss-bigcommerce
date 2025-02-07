@@ -301,10 +301,11 @@ func orderToXML(client *bigcommerce.Client, jobType JobType, order bigcommerce.O
 }
 
 type GenerateFilesConfig struct {
-	JobType   JobType
-	StoreHash string
-	AuthToken string
-	DB        *sql.DB
+	JobType    JobType
+	StoreHash  string
+	AuthToken  string
+	DB         *sql.DB
+	MinOrderID int
 }
 
 func GenerateFiles(config GenerateFilesConfig) error {
