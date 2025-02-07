@@ -1,6 +1,8 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"log"
 	"os"
 	"tss-bigcommerce/internal"
@@ -8,45 +10,71 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func main() {
+func run() error {
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf("[ERROR] loading .env file: %v", err)
+		return fmt.Errorf("[ERROR] loading .env file: %v", err)
+	}
+
+	fileDestination := os.Getenv("FILE_PATH")
+	if fileDestination == "" {
+		return fmt.Errorf("file destination cannot be empty")
 	}
 
 	db, err := internal.Database(nil)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("error conneting to the database %w", err)
 	}
 	defer db.Close()
+
+	stmt, err := db.Prepare(`SELECT order_id FROM orders WHERE website = ? LIMIT 1`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
 
 	//TODO retrieve last recorded order id from both stores and add to the config
 
 	caterHireConfig := internal.GenerateFilesConfig{}
-	caterHireConfig.DB = db
-	caterHireConfig.MinOrderID = 99999
+	if err := stmt.QueryRow(internal.CATERHIRE).Scan(&caterHireConfig.MinOrderID); err != nil {
+		if err == sql.ErrNoRows {
+			caterHireConfig.MinOrderID = 4359
+		} else {
+			return err
+		}
+	}
 	caterHireConfig.JobType = internal.CaterHireJobType
 	caterHireConfig.StoreHash = os.Getenv("CH_STORE_HASH")
 	caterHireConfig.AuthToken = os.Getenv("CH_XAUTHTOKEN")
 	if caterHireConfig.StoreHash == "" || caterHireConfig.AuthToken == "" {
-		log.Fatal("[ERROR] missing environment variables CH_STORE_HASH or CH_XAUTHTOKEN")
+		return fmt.Errorf("[ERROR] missing environment variables CH_STORE_HASH or CH_XAUTHTOKEN")
+	}
+	if err := internal.GenerateFiles(db, fileDestination, caterHireConfig); err != nil {
+		return fmt.Errorf("failed to run GenerateFiles for caterhire")
 	}
 
-	if err := internal.GenerateFiles(caterHireConfig); err != nil {
-		log.Fatal("failed to run GenerateFiles for caterhire")
+	// TODO remove
+	if true {
+		return nil
 	}
 
 	hireAllConfig := internal.GenerateFilesConfig{}
-	hireAllConfig.DB = db
-	hireAllConfig.MinOrderID = 99999
+	if err := stmt.QueryRow(internal.HIREALL).Scan(&hireAllConfig.MinOrderID); err != nil {
+		return err
+	}
 	hireAllConfig.JobType = internal.HireAlljobType
 	hireAllConfig.StoreHash = os.Getenv("HA_STORE_HASH")
 	hireAllConfig.AuthToken = os.Getenv("HA_XAUTHTOKEN")
 	if hireAllConfig.StoreHash == "" || hireAllConfig.AuthToken == "" {
-		log.Fatal("[ERROR] missing environment variables HA_STORE_HASH or HA_XAUTHTOKEN")
+		return fmt.Errorf("[ERROR] missing environment variables HA_STORE_HASH or HA_XAUTHTOKEN")
 	}
-
-	if err := internal.GenerateFiles(hireAllConfig); err != nil {
-		log.Fatal("failed to run GenerateFiles for hireall")
+	if err := internal.GenerateFiles(db, fileDestination, hireAllConfig); err != nil {
+		return fmt.Errorf("failed to run GenerateFiles for hireall")
 	}
+	return nil
+}
 
+func main() {
+	if err := run(); err != nil {
+		log.Fatalf("Failed to run script %v", err)
+	}
 }

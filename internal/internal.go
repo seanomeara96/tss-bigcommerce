@@ -304,11 +304,10 @@ type GenerateFilesConfig struct {
 	JobType    JobType
 	StoreHash  string
 	AuthToken  string
-	DB         *sql.DB
 	MinOrderID int
 }
 
-func GenerateFiles(config GenerateFilesConfig) error {
+func GenerateFiles(db *sql.DB, fileDestination string, config GenerateFilesConfig) error {
 	client := bigcommerce.NewClient(config.StoreHash, config.AuthToken, nil, nil)
 	statuses, err := client.V2.GetOrderStatuses()
 	if err != nil {
@@ -328,12 +327,11 @@ func GenerateFiles(config GenerateFilesConfig) error {
 		Direction: bigcommerce.OrderSortDirectionDesc,
 	}
 
-	fmt.Println("have taken out status id for a test. dont forget to put it back in!!", statusID)
-
 	orderQueryParams := bigcommerce.OrderQueryParams{
-		Limit: 10,
-		Sort:  orderSortParams.String(),
-		MinID: 4070,
+		Limit:    10,
+		Sort:     orderSortParams.String(),
+		MinID:    config.MinOrderID,
+		StatusID: statusID,
 	}
 
 	orders, _, err := client.V2.GetOrders(orderQueryParams)
@@ -348,7 +346,7 @@ func GenerateFiles(config GenerateFilesConfig) error {
 			continue
 		}
 
-		fileName := "order" + strconv.Itoa(order.ID) + ".xml"
+		fileName := fileDestination + "order" + strconv.Itoa(order.ID) + ".xml"
 		err = xmlToFile(fileName, xml)
 		if err != nil {
 			return fmt.Errorf("[ERROR] %v", err)
