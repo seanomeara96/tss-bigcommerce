@@ -20,6 +20,15 @@ type JobType = int
 const CaterHireJobType JobType = 1
 const HireAlljobType JobType = 2
 
+func jobTypeToWebsiteName(jobType JobType) string {
+	if jobType == 1 {
+		return string(CATERHIRE)
+	} else if jobType == 2 {
+		return string(HIREALL)
+	}
+	return ""
+}
+
 type Delivery int
 
 const DELIVERY Delivery = 0
@@ -339,6 +348,12 @@ func GenerateFiles(db *sql.DB, fileDestination string, config GenerateFilesConfi
 		return fmt.Errorf("[ERROR] getting orders: %v", err)
 	}
 
+	stmt, err := db.Prepare(`INSERT INTO orders(order_id, xml_file_created, website) VALUES (?, ?, ?)`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
 	for _, order := range orders {
 		xml, err := orderToXML(client, config.JobType, order)
 		if err != nil {
@@ -350,6 +365,11 @@ func GenerateFiles(db *sql.DB, fileDestination string, config GenerateFilesConfi
 		err = xmlToFile(fileName, xml)
 		if err != nil {
 			return fmt.Errorf("[ERROR] %v", err)
+		}
+
+		_, err = stmt.Exec(order.ID, time.Now().UTC(), jobTypeToWebsiteName(config.JobType))
+		if err != nil {
+			return err
 		}
 
 	}

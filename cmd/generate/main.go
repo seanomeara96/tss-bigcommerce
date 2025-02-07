@@ -37,11 +37,12 @@ func run() error {
 	caterHireConfig := internal.GenerateFilesConfig{}
 	if err := stmt.QueryRow(internal.CATERHIRE).Scan(&caterHireConfig.MinOrderID); err != nil {
 		if err == sql.ErrNoRows {
-			caterHireConfig.MinOrderID = 4359
+			caterHireConfig.MinOrderID = 4126
 		} else {
 			return err
 		}
 	}
+	fmt.Println("caterHireConfig.MinOrderID", caterHireConfig.MinOrderID)
 	caterHireConfig.JobType = internal.CaterHireJobType
 	caterHireConfig.StoreHash = os.Getenv("CH_STORE_HASH")
 	caterHireConfig.AuthToken = os.Getenv("CH_XAUTHTOKEN")
