@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"database/sql"
 	"encoding/xml"
 	"fmt"
 	"log"
@@ -303,6 +304,7 @@ type GenerateFilesConfig struct {
 	JobType   JobType
 	StoreHash string
 	AuthToken string
+	DB        *sql.DB
 }
 
 func GenerateFiles(config GenerateFilesConfig) error {
