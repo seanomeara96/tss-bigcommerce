@@ -15,11 +15,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-const (
-	telegramBotToken = "your-bot-token-here"
-	telegramChatID   = "your-chat-id-here"
-)
-
 // Custom handler type definition
 type HandlerFunc func(w http.ResponseWriter, r *http.Request) error
 
