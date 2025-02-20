@@ -198,6 +198,7 @@ func main() {
 	logger.Info("Server starting", zap.String("port", port))
 	err := http.ListenAndServe(port, nil)
 	if err != nil {
-		logger.Fatal("Server failed", zap.Error(err))
+		logger.Error("Server failed to start", zap.Error(err))
+		os.Exit(1) // Explicitly exit after logging, allowing defer to run
 	}
 }
